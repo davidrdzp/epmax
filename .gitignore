@@ -1,17 +1,11 @@
-# Entorno virtual y dependencias
 venv/
 env/
 ENV/
 
-# Archivos de caché de Python
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Configuración de Cursor
-.cursorrules
-
-# Archivos de sistema operativo / IDE
 .vscode/
 .DS_Store
 Thumbs.db
