@@ -1,0 +1,19 @@
+{# Mensajes flash (éxito, error, aviso). Se incluye dentro de <main>. #}
+{% set estilos = {
+  'success': 'bg-emerald-50 border-emerald-200 text-emerald-700',
+  'error': 'bg-rose-50 border-rose-200 text-rose-600',
+  'warning': 'bg-amber-50 border-amber-200 text-amber-700'
+} %}
+{% set iconos = {'success': 'circle-check', 'error': 'circle-alert', 'warning': 'triangle-alert'} %}
+{% with mensajes = get_flashed_messages(with_categories=true) %}
+  {% if mensajes %}
+  <div class="space-y-3 xl:col-span-5">
+    {% for categoria, mensaje in mensajes %}
+    <div class="flex items-start gap-3 rounded-2xl border px-5 py-3 text-sm shadow-sm {{ estilos.get(categoria, estilos['warning']) }}" role="alert">
+      <i data-lucide="{{ iconos.get(categoria, 'info') }}" class="w-5 h-5 shrink-0 mt-px"></i>
+      <span>{{ mensaje }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}

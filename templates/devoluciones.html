@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Devoluciones{% endblock %}
+{% block page_title %}Devoluciones{% endblock %}
+{% block page_subtitle %}Consulta un folio de venta y gestiona la devolución de sus piezas.{% endblock %}
+
+{% block header_actions %}
+          <a href="{{ url_for('historial_ventas') }}"
+            class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-rose-200 text-rose-500 font-medium shadow-sm hover:bg-rose-50 transition">
+            <i data-lucide="history" class="w-5 h-5"></i> Ver Historial de Ventas
+          </a>
+{% endblock %}
+
+{% block content %}
+        <!-- Devoluciones por folio -->
+        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="undo-2" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-semibold text-mauve-700">Devoluciones por Folio de Venta</h2>
+              <p class="text-xs text-mauve-400">Consulta una venta registrada para gestionar su devolución</p>
+            </div>
+          </div>
+          <div class="p-6 scroll-mt-6" id="devoluciones">
+          <form method="get" action="{{ url_for('devoluciones') }}#devoluciones">
+            <label for="id_venta" class="block text-sm font-medium text-mauve-600 mb-1.5">
+              Folio de venta
+            </label>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <div class="relative flex-1">
+                <i data-lucide="hash" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                <input id="id_venta" name="id_venta" type="number" min="1" placeholder="Ingresa el folio de la venta" value="{{ folio_txt }}"
+                  class="w-full pl-11 pr-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+              <button type="submit"
+                class="px-8 py-3 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition inline-flex items-center justify-center gap-2">
+                <i data-lucide="search" class="w-4 h-4"></i> Buscar
+              </button>
+            </div>
+          </form>
+
+            {% if error_folio %}
+            <div class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4 text-sm text-rose-600">{{ error_folio }}</div>
+            {% elif consulta_folio %}
+            {% set v = consulta_folio.venta %}
+            <div class="mt-5 rounded-2xl border border-rose-100 bg-cream-50 px-6 py-5 text-sm space-y-4">
+              <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div><p class="text-xs text-mauve-400">Folio</p><p class="font-semibold text-mauve-700">#{{ v.id_venta }}</p></div>
+                <div><p class="text-xs text-mauve-400">Fecha</p><p class="font-semibold text-mauve-700">{{ v.fecha_v }}</p></div>
+                <div><p class="text-xs text-mauve-400">Cliente</p><p class="font-semibold text-mauve-700">{{ v.cliente }}</p></div>
+                <div><p class="text-xs text-mauve-400">Atendió</p><p class="font-semibold text-mauve-700">{{ v.estilista }}</p></div>
+                <div class="sm:col-span-2">
+                  <p class="text-xs text-mauve-400">Ítem</p>
+                  <p class="font-semibold text-mauve-700">
+                    {{ v.item }}
+                    <span class="ml-1 text-xs font-semibold px-2.5 py-0.5 rounded-full {{ 'bg-rose-100 text-rose-500' if v.tipo_item == 'Servicio' else 'bg-emerald-50 text-emerald-600' }}">{{ v.tipo_item }}</span>
+                  </p>
+                </div>
+                <div><p class="text-xs text-mauve-400">Cantidad vendida</p><p class="font-semibold text-mauve-700">{{ v.cant_v }}</p></div>
+                <div><p class="text-xs text-mauve-400">Total</p><p class="font-semibold text-rose-500">${{ '{:,.2f}'.format(v.subtotal) }}</p></div>
+              </div>
+              <div class="overflow-x-auto rounded-xl border border-rose-100 bg-white">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-rose-100/60 text-mauve-600 text-left text-xs uppercase tracking-wider">
+                      <th class="px-4 py-2 font-semibold">ID Dev.</th>
+                      <th class="px-4 py-2 font-semibold">Fecha</th>
+                      <th class="px-4 py-2 font-semibold text-center">Piezas devueltas</th>
+                      <th class="px-4 py-2 font-semibold">Autorizó</th>
+                      <th class="px-4 py-2 font-semibold">Destino</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for d in consulta_folio.devoluciones %}
+                    <tr class="border-t border-rose-100">
+                      <td class="px-4 py-2">{{ d.id_devolucion }}</td>
+                      <td class="px-4 py-2">{{ d.fecha_dev }}</td>
+                      <td class="px-4 py-2 text-center">{{ d.cant_dev }}</td>
+                      <td class="px-4 py-2">{{ d.autorizado_por }}</td>
+                      <td class="px-4 py-2">
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full {{ 'bg-amber-100 text-amber-700' if d.destino == 'Merma' else 'bg-rose-100 text-rose-500' }}">{{ d.destino }}</span>
+                      </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="px-4 py-6 text-center text-mauve-400">Esta venta no tiene devoluciones registradas</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+              {# Formulario para registrar una devolución del folio #}
+              {% if consulta_folio.cant_disponible > 0 %}
+              <form method="post" action="{{ url_for('procesar_devolucion') }}" class="rounded-xl border border-rose-100 bg-white p-4">
+                <input type="hidden" name="id_venta" value="{{ v.id_venta }}" />
+                <p class="text-sm font-semibold text-mauve-700 mb-1 flex items-center gap-2"><i data-lucide="undo-2" class="w-4 h-4 text-rose-400"></i> Procesar nueva devolución</p>
+                <p class="text-xs text-mauve-400 mb-4">
+                  Vendidas: {{ v.cant_v }} · Ya devueltas: {{ consulta_folio.cant_devuelta }} · Disponibles para devolver: <span class="font-semibold text-mauve-600">{{ consulta_folio.cant_disponible }}</span>
+                </p>
+                <div class="grid gap-4 sm:grid-cols-3 items-end">
+                  <div>
+                    <label for="cant_dev" class="block text-sm font-medium text-mauve-600 mb-1.5">Piezas a devolver</label>
+                    <input id="cant_dev" name="cant_dev" type="number" min="1" max="{{ consulta_folio.cant_disponible }}" step="1" required placeholder="1"
+                      class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                  </div>
+                  <div>
+                    <label for="destino" class="block text-sm font-medium text-mauve-600 mb-1.5">Destino</label>
+                    <div class="relative">
+                      <select id="destino" name="destino" required class="w-full appearance-none px-4 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                        <option value="" selected>Seleccionar...</option>
+                        <option value="Stock">Stock</option>
+                        <option value="Merma">Merma</option>
+                      </select>
+                      <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
+                  </div>
+                  <button type="submit"
+                    class="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition inline-flex items-center justify-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i> Procesar Devolución
+                  </button>
+                </div>
+                {% if v.tipo_item == 'Servicio' %}
+                <p class="text-xs text-mauve-300 mt-3">Los servicios no afectan el inventario ni el historial de movimientos.</p>
+                {% endif %}
+              </form>
+              {% else %}
+              <div class="rounded-xl border border-dashed border-rose-200 bg-white px-4 py-3 text-center text-xs text-mauve-400">
+                Todas las piezas de este folio ya fueron devueltas.
+              </div>
+              {% endif %}
+            </div>
+            {% else %}
+            <div class="mt-5 rounded-2xl border border-dashed border-rose-200 bg-cream-50 px-6 py-8 text-center text-sm text-mauve-400">
+              <i data-lucide="receipt-text" class="w-7 h-7 mx-auto mb-2 text-rose-300"></i>
+              Los detalles de la venta aparecerán aquí al realizar una búsqueda.
+              <p class="mt-2 text-xs text-mauve-300">¿No recuerdas el folio? Búscalo en el <a href="{{ url_for('historial_ventas') }}" class="text-rose-500 underline">Historial de Ventas</a>.</p>
+            </div>
+            {% endif %}
+          </div>
+        </section>
+{% endblock %}

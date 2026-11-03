@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+
+{% block title %}Punto de Venta{% endblock %}
+{% block page_title %}Punto de Venta{% endblock %}
+{% block page_subtitle %}Registra una nueva venta agregando ítems del catálogo.{% endblock %}
+
+{% block head_extra %}
+  <style>
+    /* Borde dentado inferior tipo ticket */
+    .zigzag-bottom {
+      height: 12px;
+      background:
+        linear-gradient(135deg, #fdeef0 25%, transparent 25%) -6px 0,
+        linear-gradient(225deg, #fdeef0 25%, transparent 25%) -6px 0;
+      background-size: 12px 12px;
+    }
+  </style>
+{% endblock %}
+
+{% block main_class %}grid gap-6 xl:grid-cols-5{% endblock %}
+
+{% block content %}
+        <!-- Formulario de venta (los campos se asocian con el atributo form="form-venta") -->
+        <form id="form-venta" method="post" action="{{ url_for('procesar_venta') }}" class="hidden"></form>
+
+        <!-- ========== Columna izquierda: formulario ========== -->
+        <section class="xl:col-span-3 space-y-6">
+
+          <!-- Datos generales -->
+          <div class="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
+            <h2 class="font-semibold flex items-center gap-2 mb-5"><i data-lucide="clipboard-list" class="w-5 h-5 text-rose-400"></i> Datos de la venta</h2>
+            <div class="grid sm:grid-cols-2 gap-4">
+
+              <div>
+                <label for="id_cliente" class="block text-sm font-medium text-mauve-600 mb-1.5">
+                  Cliente
+                </label>
+                <div class="relative">
+                  <i data-lucide="user" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                  <select id="id_cliente" name="id_cliente" form="form-venta" required class="w-full appearance-none pl-11 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="" selected>Seleccionar...</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.id_cliente }}">{{ c.nom_cl }}</option>
+                    {% endfor %}
+                  </select>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+              </div>
+
+              <div>
+                <label for="id_usuario" class="block text-sm font-medium text-mauve-600 mb-1.5">
+                  Usuario / Estilista
+                </label>
+                <div class="relative">
+                  <i data-lucide="scissors" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                  <select id="id_usuario" name="id_usuario" form="form-venta" required class="w-full appearance-none pl-11 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="">Seleccionar...</option>
+                    {% for u in usuarios %}
+                    <option value="{{ u.id_usuario }}" {{ 'selected' if u.id_usuario == session.id_usuario }}>{{ u.nom_us }}</option>
+                    {% endfor %}
+                  </select>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+              </div>
+
+              <div class="sm:col-span-2 sm:max-w-xs">
+                <label for="fecha_v" class="block text-sm font-medium text-mauve-600 mb-1.5">
+                  Fecha de venta
+                </label>
+                <div class="relative">
+                  <i data-lucide="calendar" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                  <input id="fecha_v" name="fecha_v" type="date" form="form-venta" value="{{ hoy }}" max="{{ hoy }}"
+                    class="w-full pl-11 pr-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-500 focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Agregar ítem -->
+          <div class="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
+            <h2 class="font-semibold flex items-center gap-2 mb-5"><i data-lucide="shopping-bag" class="w-5 h-5 text-rose-400"></i> Ítem del catálogo</h2>
+
+            <div class="space-y-4">
+              <div>
+                <label for="buscar_item" class="block text-sm font-medium text-mauve-600 mb-1.5">Buscar ítem</label>
+                <div class="relative">
+                  <i data-lucide="search" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                  <input id="buscar_item" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugerencias_item"
+                    placeholder="Buscar por código o nombre del servicio / producto…"
+                    class="w-full pl-11 pr-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                  <ul id="sugerencias_item" role="listbox"
+                    class="hidden absolute left-0 right-0 top-full mt-2 z-30 max-h-72 overflow-y-auto bg-white rounded-2xl border border-rose-100 shadow-lg py-1.5"></ul>
+                </div>
+              </div>
+
+              <div class="grid sm:grid-cols-3 gap-4">
+                <div class="sm:col-span-2">
+                  <label for="id_item" class="block text-sm font-medium text-mauve-600 mb-1.5">
+                    Ítem
+                  </label>
+                  <div class="relative">
+                    <i data-lucide="tag" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                    <select id="id_item" class="w-full appearance-none pl-11 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                      <option value="" selected>Seleccionar...</option>
+                      {% for nom_cat, items in catalogo_agrupado.items() %}
+                      {% if items %}
+                      <optgroup label="{{ nom_cat }}">
+                        {% for i in items %}
+                        <option value="{{ i.id_item }}" data-nombre="{{ i.nom_item }}" data-precio="{{ i.precio_v }}" data-tipo="{{ i.tipo_item }}" data-stock="{{ i.stock or 0 }}">
+                          {{ i.nom_item }} — ${{ '{:,.2f}'.format(i.precio_v) }}{% if i.tipo_item != 'Servicio' %} · stock {{ i.stock or 0 }}{% endif %}
+                        </option>
+                        {% endfor %}
+                      </optgroup>
+                      {% endif %}
+                      {% endfor %}
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="cant_v" class="block text-sm font-medium text-mauve-600 mb-1.5">
+                    Cantidad
+                  </label>
+                  <input id="cant_v" type="number" min="1" step="1" placeholder="0"
+                    class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                </div>
+              </div>
+
+              <button type="button" id="btnAgregar"
+                class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-rose-100 text-rose-600 font-semibold border border-rose-200 hover:bg-rose-200 active:scale-[.98] transition inline-flex items-center justify-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i> Agregar Ítem a la Venta
+              </button>
+              <p id="msgItem" class="hidden text-sm text-rose-500" role="alert"></p>
+            </div>
+          </div>
+
+          <!-- Nuevo cliente -->
+          <form method="post" action="{{ url_for('nuevo_cliente') }}" class="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
+            <h2 class="font-semibold flex items-center gap-2 mb-5"><i data-lucide="user-plus" class="w-5 h-5 text-rose-400"></i> Registrar nuevo cliente</h2>
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div class="sm:col-span-3">
+                <label for="nom_cl" class="block text-sm font-medium text-mauve-600 mb-1.5">Nombre</label>
+                <input id="nom_cl" name="nom_cl" type="text" maxlength="60" required placeholder="Nombre completo"
+                  class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+              <div class="sm:col-span-2">
+                <label for="tel_cl" class="block text-sm font-medium text-mauve-600 mb-1.5">Teléfono</label>
+                <input id="tel_cl" name="tel_cl" type="tel" maxlength="15" placeholder="Opcional"
+                  class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+              <div>
+                <label for="gen_cl" class="block text-sm font-medium text-mauve-600 mb-1.5">Género</label>
+                <div class="relative">
+                  <select id="gen_cl" name="gen_cl" class="w-full appearance-none px-4 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="" selected>Sin especificar</option>
+                    {% for g in generos %}
+                    <option value="{{ g }}">{{ g }}</option>
+                    {% endfor %}
+                  </select>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-end mt-5">
+              <button type="submit"
+                class="px-6 py-2.5 rounded-2xl bg-rose-100 text-rose-600 font-semibold border border-rose-200 hover:bg-rose-200 active:scale-[.98] transition inline-flex items-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar Cliente
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- ========== Columna derecha: ticket ========== -->
+        <aside class="xl:col-span-2">
+          <div class="xl:sticky xl:top-6">
+            <div class="rounded-t-2xl bg-[#fdeef0] shadow-md border border-rose-100 border-b-0 px-6 pt-7 pb-6">
+
+              <div class="text-center border-b border-dashed border-rose-300 pb-5">
+                <div class="mx-auto w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm mb-3">
+                  <i data-lucide="scissors" class="w-5 h-5 text-rose-400"></i>
+                </div>
+                <h3 class="font-display text-xl font-semibold">Coco A Gogo</h3>
+                <p class="font-display italic text-rose-400 -mt-0.5">Hair Studio</p>
+                <p class="text-[11px] uppercase tracking-widest text-mauve-400 mt-3">Resumen de venta</p>
+              </div>
+
+              <!-- Tabla de ítems -->
+              <div class="py-4 border-b border-dashed border-rose-300">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="text-[11px] uppercase tracking-wider text-mauve-500 text-left">
+                      <th class="pb-2 font-semibold">Ítem</th>
+                      <th class="pb-2 font-semibold text-center">Cant.</th>
+                      <th class="pb-2 font-semibold text-right">Precio Venta</th>
+                      <th class="pb-2 font-semibold text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketItems">
+                    <tr>
+                      <td colspan="4" class="py-10 text-center text-mauve-400">
+                        <i data-lucide="shopping-bag" class="w-6 h-6 mx-auto mb-2 text-rose-300"></i>
+                        <span class="text-sm">Aún no hay ítems en la venta</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Totales -->
+              <div class="py-4 space-y-2 text-sm">
+                <div class="flex justify-between text-mauve-500"><span>Subtotal</span><span id="ticketSubtotal" class="font-medium text-mauve-700">$0.00</span></div>
+                <div class="flex justify-between text-mauve-500"><span>IVA (16%)</span><span id="ticketIva" class="font-medium text-mauve-700">$0.00</span></div>
+              </div>
+
+              <div class="rounded-2xl bg-white shadow-sm px-5 py-4 flex items-center justify-between border border-rose-200">
+                <span class="text-sm font-semibold text-mauve-600 uppercase tracking-wider">Total</span>
+                <span id="ticketTotal" class="font-display text-3xl font-bold text-rose-500">$0.00</span>
+              </div>
+
+              <button type="submit" form="form-venta" id="btnCobrar" disabled
+                class="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                <i data-lucide="badge-check" class="w-5 h-5"></i> Cobrar y Generar Venta
+              </button>
+            </div>
+            <div class="zigzag-bottom drop-shadow-sm"></div>
+          </div>
+        </aside>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // ---------- Punto de venta: carrito del lado del cliente ----------
+    // El servidor vuelve a validar todo (stock, existencia de ítems, etc.) en /pos/procesar_venta.
+    const IVA = 0.16;
+    const carrito = [];                       // { id, nombre, precio, cant, fisico, stock }
+    const selItem = document.getElementById('id_item');
+    const inpCant = document.getElementById('cant_v');
+    const inpBuscar = document.getElementById('buscar_item');
+    const msgItem = document.getElementById('msgItem');
+    const tbody = document.getElementById('ticketItems');
+    const formVenta = document.getElementById('form-venta');
+    const btnCobrar = document.getElementById('btnCobrar');
+    const dinero = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    function avisar(texto) {
+      msgItem.textContent = texto || '';
+      msgItem.classList.toggle('hidden', !texto);
+    }
+
+    // Agrega un ítem (option del select) al ticket con su precio oficial. Devuelve true si se agregó.
+    function agregarAlTicket(op, cant) {
+      if (!op || !op.value) { avisar('Selecciona un ítem del catálogo.'); return false; }
+      if (!Number.isInteger(cant) || cant < 1) { avisar('Indica una cantidad válida (mínimo 1).'); return false; }
+
+      const fisico = op.dataset.tipo !== 'Servicio';
+      const stock = parseInt(op.dataset.stock, 10) || 0;
+      const existente = carrito.find(l => l.id === op.value);
+      const total = cant + (existente ? existente.cant : 0);
+      if (fisico && total > stock) {
+        avisar('Stock insuficiente de «' + op.dataset.nombre + '»: disponible ' + stock + '.');
+        return false;
+      }
+
+      if (existente) existente.cant = total;
+      else carrito.push({ id: op.value, nombre: op.dataset.nombre, precio: parseFloat(op.dataset.precio), cant, fisico, stock });
+      avisar('');
+      renderTicket();
+      return true;
+    }
+
+    document.getElementById('btnAgregar').addEventListener('click', () => {
+      if (agregarAlTicket(selItem.selectedOptions[0], parseInt(inpCant.value, 10))) inpCant.value = '';
+    });
+
+    // ---------- Buscador predictivo (autocompletado) ----------
+    // Las sugerencias se construyen a partir de las opciones del selector (datos del catálogo).
+    const listaSug = document.getElementById('sugerencias_item');
+    const CATALOGO = Array.from(selItem.options).filter(op => op.value).map(op => ({
+      id: op.value,
+      nombre: op.dataset.nombre,
+      tipo: op.dataset.tipo,
+      precio: parseFloat(op.dataset.precio),
+      stock: parseInt(op.dataset.stock, 10) || 0,
+      categoria: op.parentElement.label || '',
+    }));
+    const BADGE = {
+      Servicio: 'bg-rose-100 text-rose-500',
+      Producto: 'bg-emerald-50 text-emerald-600',
+      Insumo: 'bg-amber-100 text-amber-700',
+    };
+    const normalizar = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const MAX_SUGERENCIAS = 8;
+    let sugerencias = [];
+    let activa = -1;
+
+    function cerrarSugerencias() {
+      listaSug.classList.add('hidden');
+      inpBuscar.setAttribute('aria-expanded', 'false');
+      activa = -1;
+    }
+
+    function marcarActiva(i) {
+      const lis = listaSug.querySelectorAll('li[data-idx]');
+      lis.forEach(li => li.classList.remove('bg-rose-50'));
+      activa = lis.length ? (i + lis.length) % lis.length : -1;
+      if (activa >= 0) {
+        lis[activa].classList.add('bg-rose-50');
+        lis[activa].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    function mostrarSugerencias() {
+      const q = normalizar(inpBuscar.value.trim());
+      if (!q) { cerrarSugerencias(); return; }
+
+      // Primero los nombres que empiezan con el texto y luego los que lo contienen (o coinciden en ID).
+      const empieza = [], contiene = [];
+      CATALOGO.forEach(it => {
+        const n = normalizar(it.nombre);
+        if (n.startsWith(q)) empieza.push(it);
+        else if (n.includes(q) || it.id === q) contiene.push(it);
+      });
+      sugerencias = empieza.concat(contiene).slice(0, MAX_SUGERENCIAS);
+
+      if (!sugerencias.length) {
+        listaSug.innerHTML = '<li class="px-4 py-3 text-sm text-mauve-400">Sin coincidencias para «' + esc(inpBuscar.value.trim()) + '»</li>';
+      } else {
+        listaSug.innerHTML = sugerencias.map((it, i) => {
+          const agotado = it.tipo !== 'Servicio' && it.stock < 1;
+          return '<li role="option" data-idx="' + i + '" class="flex items-center justify-between gap-3 px-4 py-2.5 cursor-pointer hover:bg-rose-50 transition">' +
+            '<span class="min-w-0"><span class="block text-sm font-medium text-mauve-700 truncate">' + esc(it.nombre) + '</span>' +
+            '<span class="block text-[11px] text-mauve-300 truncate">' + esc(it.categoria) +
+            (it.tipo !== 'Servicio' ? ' · ' + (agotado ? 'agotado' : 'stock ' + it.stock) : '') + '</span></span>' +
+            '<span class="flex items-center gap-2 shrink-0">' +
+            '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ' + (BADGE[it.tipo] || BADGE.Producto) + '">' + esc(it.tipo) + '</span>' +
+            '<span class="text-sm font-semibold text-mauve-700">' + dinero(it.precio) + '</span></span></li>';
+        }).join('');
+      }
+      listaSug.classList.remove('hidden');
+      inpBuscar.setAttribute('aria-expanded', 'true');
+      activa = -1;
+      if (sugerencias.length) marcarActiva(0);
+    }
+
+    // Selecciona la sugerencia: la fija en el selector y la agrega al ticket (cantidad indicada o 1).
+    function elegirSugerencia(i) {
+      const it = sugerencias[i];
+      if (!it) return;
+      selItem.value = it.id;
+      const cant = parseInt(inpCant.value, 10);
+      if (agregarAlTicket(selItem.selectedOptions[0], Number.isInteger(cant) && cant >= 1 ? cant : 1)) {
+        inpCant.value = '';
+        inpBuscar.value = '';
+        selItem.value = '';
+      } else {
+        inpBuscar.value = it.nombre;   // deja el ítem seleccionado para corregir la cantidad
+      }
+      cerrarSugerencias();
+      inpBuscar.focus();
+    }
+
+    inpBuscar.addEventListener('input', mostrarSugerencias);
+    inpBuscar.addEventListener('focus', mostrarSugerencias);
+    inpBuscar.addEventListener('keydown', e => {
+      const abierta = !listaSug.classList.contains('hidden');
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (abierta) marcarActiva(activa + 1); else mostrarSugerencias(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (abierta) marcarActiva(activa - 1); }
+      else if (e.key === 'Enter') { if (abierta && activa >= 0) { e.preventDefault(); elegirSugerencia(activa); } }
+      else if (e.key === 'Escape') cerrarSugerencias();
+    });
+    listaSug.addEventListener('mousedown', e => {   // mousedown evita perder el foco antes del clic
+      const li = e.target.closest('li[data-idx]');
+      if (li) { e.preventDefault(); elegirSugerencia(parseInt(li.dataset.idx, 10)); }
+    });
+    listaSug.addEventListener('mousemove', e => {
+      const li = e.target.closest('li[data-idx]');
+      if (li && parseInt(li.dataset.idx, 10) !== activa) marcarActiva(parseInt(li.dataset.idx, 10));
+    });
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#buscar_item') && !e.target.closest('#sugerencias_item')) cerrarSugerencias();
+    });
+
+    function quitar(id) {
+      const i = carrito.findIndex(l => l.id === id);
+      if (i >= 0) carrito.splice(i, 1);
+      renderTicket();
+    }
+
+    function renderTicket() {
+      if (!carrito.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-mauve-400">' +
+          '<i data-lucide="shopping-bag" class="w-6 h-6 mx-auto mb-2 text-rose-300"></i>' +
+          '<span class="text-sm">Aún no hay ítems en la venta</span></td></tr>';
+      } else {
+        tbody.innerHTML = carrito.map(l =>
+          '<tr class="border-b border-dashed border-rose-200 last:border-0">' +
+          '<td class="py-2 pr-2"><button type="button" data-quitar="' + esc(l.id) + '" title="Quitar" class="text-mauve-300 hover:text-rose-500 mr-1">×</button>' + esc(l.nombre) + '</td>' +
+          '<td class="py-2 text-center">' + l.cant + '</td>' +
+          '<td class="py-2 text-right">' + dinero(l.precio) + '</td>' +
+          '<td class="py-2 text-right font-medium">' + dinero(l.precio * l.cant) + '</td></tr>'
+        ).join('');
+      }
+      const subtotal = carrito.reduce((s, l) => s + l.precio * l.cant, 0);
+      document.getElementById('ticketSubtotal').textContent = dinero(subtotal);
+      document.getElementById('ticketIva').textContent = dinero(subtotal * IVA);
+      document.getElementById('ticketTotal').textContent = dinero(subtotal * (1 + IVA));
+
+      // Campos ocultos id_item / cant_v enviados a /pos/procesar_venta
+      formVenta.querySelectorAll('input[type=hidden]').forEach(e => e.remove());
+      carrito.forEach(l => {
+        [['id_item', l.id], ['cant_v', l.cant]].forEach(([nombre, valor]) => {
+          const h = document.createElement('input');
+          h.type = 'hidden'; h.name = nombre; h.value = valor;
+          formVenta.appendChild(h);
+        });
+      });
+
+      const vacio = !carrito.length;
+      btnCobrar.disabled = vacio;
+      btnCobrar.classList.toggle('opacity-50', vacio);
+      btnCobrar.classList.toggle('cursor-not-allowed', vacio);
+      lucide.createIcons();
+    }
+
+    tbody.addEventListener('click', e => {
+      const b = e.target.closest('[data-quitar]');
+      if (b) quitar(b.dataset.quitar);
+    });
+  </script>
+{% endblock %}

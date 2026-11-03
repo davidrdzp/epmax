@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Bienvenida a Coco A Gogo{% endblock %}
+{% block page_subtitle %}<span id="fechaHoy">Resumen general de tu estudio.</span>{% endblock %}
+
+{% block content %}
+        <!-- Tarjetas resumen -->
+        <section class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <article class="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm text-mauve-400">Ventas del día</p>
+                <p class="font-display text-4xl font-semibold mt-2 text-mauve-700">{{ resumen.ventas_hoy }}</p>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-400 flex items-center justify-center">
+                <i data-lucide="calendar-heart" class="w-6 h-6"></i>
+              </div>
+            </div>
+            <p class="text-xs mt-4 text-mauve-300">Transacciones registradas hoy</p>
+          </article>
+
+          <article class="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm text-mauve-400">Ventas totales</p>
+                <p class="font-display text-4xl font-semibold mt-2 text-mauve-700">${{ '{:,.2f}'.format(resumen.ingreso_total) }}</p>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-cream-100 text-mauve-400 flex items-center justify-center">
+                <i data-lucide="wallet" class="w-6 h-6"></i>
+              </div>
+            </div>
+            <p class="text-xs mt-4 text-mauve-300">{{ resumen.total_ventas }} transacci{{ 'ón' if resumen.total_ventas == 1 else 'ones' }} · {{ 'Todo el estudio' if es_admin else 'Tus ventas' }}</p>
+          </article>
+
+          <article class="bg-white rounded-2xl border border-rose-100 shadow-sm p-6 sm:col-span-2 xl:col-span-1">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm text-mauve-400">Servicios realizados</p>
+                <p class="font-display text-4xl font-semibold mt-2 text-mauve-700">{{ resumen.servicios_realizados }}</p>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-mauve-100 text-mauve-500 flex items-center justify-center">
+                <i data-lucide="sparkles" class="w-6 h-6"></i>
+              </div>
+            </div>
+            <p class="text-xs mt-4 text-mauve-300">Unidades de tipo Servicio vendidas</p>
+          </article>
+        </section>
+
+        <!-- Alertas -->
+        <section class="grid gap-6 xl:grid-cols-2">
+
+          <!-- Stock mínimo -->
+          <div class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="package-minus" class="w-5 h-5"></i></div>
+                <div>
+                  <h2 class="font-semibold text-mauve-700">Productos con Stock Mínimo</h2>
+                  <p class="text-xs text-mauve-400">Ítems por debajo del stock mínimo</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold px-3 py-1 rounded-full bg-rose-100 text-rose-500">{{ stock_bajo|length }} alerta{{ '' if stock_bajo|length == 1 else 's' }}</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-rose-100/60 text-mauve-600 text-left text-xs uppercase tracking-wider">
+                    <th class="px-6 py-3 font-semibold">ID Ítem</th>
+                    <th class="px-6 py-3 font-semibold">Nombre</th>
+                    <th class="px-6 py-3 font-semibold text-center">Stock Actual</th>
+                    <th class="px-6 py-3 font-semibold text-center">Stock Mínimo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for a in stock_bajo %}
+                  <tr class="border-t border-rose-100">
+                    <td class="px-6 py-3">{{ a.id_item }}</td>
+                    <td class="px-6 py-3 font-medium text-mauve-700">{{ a.nom_item }}</td>
+                    <td class="px-6 py-3 text-center font-semibold text-rose-500">{{ a.stock }}</td>
+                    <td class="px-6 py-3 text-center">{{ a.stock_min }}</td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-mauve-400">
+                      <i data-lucide="package-check" class="w-7 h-7 mx-auto mb-2 text-rose-300"></i>
+                      Sin alertas de stock registradas
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Próximos a caducar -->
+          <div class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-cream-100 to-white">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center"><i data-lucide="hourglass" class="w-5 h-5"></i></div>
+                <div>
+                  <h2 class="font-semibold text-mauve-700">Próximos a Caducar</h2>
+                  <p class="text-xs text-mauve-400">Productos con fecha de caducidad cercana</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700">{{ proximos_a_caducar|length }} alerta{{ '' if proximos_a_caducar|length == 1 else 's' }}</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-rose-100/60 text-mauve-600 text-left text-xs uppercase tracking-wider">
+                    <th class="px-6 py-3 font-semibold">ID Ítem</th>
+                    <th class="px-6 py-3 font-semibold">Nombre</th>
+                    <th class="px-6 py-3 font-semibold text-center">Fecha Caducidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for a in proximos_a_caducar %}
+                  <tr class="border-t border-rose-100">
+                    <td class="px-6 py-3">{{ a.id_item }}</td>
+                    <td class="px-6 py-3 font-medium text-mauve-700">{{ a.nom_item }}</td>
+                    <td class="px-6 py-3 text-center">
+                      {{ a.fecha_caduc }}
+                      <span class="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full {{ 'bg-rose-100 text-rose-500' if a.estado == 'Vencido' else 'bg-amber-100 text-amber-700' }}">
+                        {{ 'Vencido' if a.estado == 'Vencido' else a.dias_restantes ~ ' días' }}
+                      </span>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="3" class="px-6 py-12 text-center text-mauve-400">
+                      <i data-lucide="calendar-check" class="w-7 h-7 mx-auto mb-2 text-rose-300"></i>
+                      Sin productos próximos a caducar
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // Fecha actual del sistema (no es dato simulado)
+    const f = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('fechaHoy').textContent = f.charAt(0).toUpperCase() + f.slice(1) + ' · Resumen general de tu estudio.';
+  </script>
+{% endblock %}

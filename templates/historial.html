@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Ventas{% endblock %}
+{% block page_title %}Historial de Ventas{% endblock %}
+{% block page_subtitle %}Auditoría de los folios generados{{ '' if es_admin else ' · solo las ventas que tú procesaste' }}.{% endblock %}
+
+{% block header_actions %}
+          <a href="{{ url_for('devoluciones') }}"
+            class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-rose-200 text-rose-500 font-medium shadow-sm hover:bg-rose-50 transition">
+            <i data-lucide="undo-2" class="w-5 h-5"></i> Ir a Devoluciones
+          </a>
+{% endblock %}
+
+{% block content %}
+        <!-- Historial de ventas registradas -->
+        <section id="historial-ventas" class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden scroll-mt-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="history" class="w-5 h-5"></i></div>
+              <div>
+                <h2 class="font-semibold text-mauve-700">Historial de Ventas Registradas</h2>
+                <p class="text-xs text-mauve-400">Transacciones de la más reciente a la más antigua{{ '' if es_admin else ' · solo las tuyas' }}</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="relative w-full sm:w-64">
+                <i data-lucide="search" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                <input id="filtroVentas" type="text" placeholder="Folio, cliente o ítem…" autocomplete="off"
+                  class="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-white border border-rose-200 placeholder-mauve-300 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+              {% if es_admin %}
+              <div class="relative w-full sm:w-56">
+                <i data-lucide="scissors" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                <select id="filtroEstilista" class="w-full appearance-none pl-11 pr-10 py-2.5 rounded-2xl bg-white border border-rose-200 text-sm text-mauve-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+                  <option value="">Todos los estilistas</option>
+                  {% for nombre in atendidos_por %}
+                  <option value="{{ nombre }}">{{ nombre }}</option>
+                  {% endfor %}
+                </select>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="overflow-x-auto max-h-[36rem] overflow-y-auto">
+            <table class="w-full text-sm whitespace-nowrap">
+              <thead class="sticky top-0">
+                <tr class="bg-rose-100 text-mauve-600 text-left text-xs uppercase tracking-wider">
+                  <th class="px-6 py-3 font-semibold">Folio</th>
+                  <th class="px-6 py-3 font-semibold">Fecha</th>
+                  <th class="px-6 py-3 font-semibold">Cliente</th>
+                  <th class="px-6 py-3 font-semibold">Atendido por</th>
+                  <th class="px-6 py-3 font-semibold">Concepto / Ítem</th>
+                  <th class="px-6 py-3 font-semibold text-center">Cantidad</th>
+                  <th class="px-6 py-3 font-semibold text-right">Importe Total</th>
+                  <th class="px-6 py-3 font-semibold text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyVentas">
+                {% for h in historial_ventas %}
+                <tr data-venta-row data-folio="{{ h.id_venta }}" data-estilista="{{ h.estilista }}" data-importe="{{ h.subtotal }}"
+                    data-texto="{{ (h.id_venta|string ~ ' ' ~ h.cliente ~ ' ' ~ h.item ~ ' ' ~ h.estilista)|lower }}"
+                    class="border-t border-rose-100 hover:bg-rose-50/40 transition">
+                  <td class="px-6 py-3 font-medium text-mauve-700">#{{ h.id_venta }}</td>
+                  <td class="px-6 py-3">{{ h.fecha_v }}</td>
+                  <td class="px-6 py-3">{{ h.cliente }}</td>
+                  <td class="px-6 py-3">{{ h.estilista }}</td>
+                  <td class="px-6 py-3">
+                    {{ h.item }}
+                    <span class="ml-1 text-xs font-semibold px-2.5 py-0.5 rounded-full {{ 'bg-rose-100 text-rose-500' if h.tipo_item == 'Servicio' else 'bg-emerald-50 text-emerald-600' }}">{{ 'Servicio' if h.tipo_item == 'Servicio' else 'Producto' }}</span>
+                  </td>
+                  <td class="px-6 py-3 text-center">{{ h.cant_v }}</td>
+                  <td class="px-6 py-3 text-right font-semibold text-rose-500">${{ '{:,.2f}'.format(h.subtotal) }}</td>
+                  <td class="px-6 py-3 text-center">
+                    <a href="{{ url_for('devoluciones', id_venta=h.id_venta) }}#devoluciones" title="Consultar devoluciones del folio #{{ h.id_venta }}"
+                      class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-rose-100 text-rose-500 hover:bg-rose-200 transition">
+                      <i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Devolver
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+                <tr id="sinVentas" class="{{ 'hidden' if historial_ventas }}">
+                  <td colspan="8" class="px-6 py-12 text-center text-mauve-400">
+                    <i data-lucide="receipt-text" class="w-7 h-7 mx-auto mb-2 text-rose-300"></i>
+                    <span id="textoSinVentas">{{ 'Ninguna venta coincide con el filtro' if historial_ventas else 'Aún no hay ventas registradas' }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 px-6 py-4 bg-cream-50 border-t border-rose-100 text-xs text-mauve-400">
+            <span id="contadorVentas">Mostrando {{ historial_ventas|length }} de {{ historial_ventas|length }} venta{{ '' if historial_ventas|length == 1 else 's' }}</span>
+            <span>Importe visible: <span id="importeVentas" class="font-semibold text-mauve-600">$0.00</span></span>
+          </div>
+        </section>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // ---------- Historial de ventas: filtro rápido por folio / cliente / ítem y por estilista ----------
+    (function () {
+      const filas = Array.from(document.querySelectorAll('#tbodyVentas tr[data-venta-row]'));
+      const inpTexto = document.getElementById('filtroVentas');
+      const selEstilista = document.getElementById('filtroEstilista');   // solo existe para el Administrador
+      const sinVentas = document.getElementById('sinVentas');
+      const dinero = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const normalizar = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      function filtrar() {
+        const q = normalizar(inpTexto.value.trim().replace(/^#/, ''));
+        const estilista = selEstilista ? selEstilista.value : '';
+        let visibles = 0, importe = 0;
+        filas.forEach(tr => {
+          const coincide = (!q || normalizar(tr.dataset.texto).includes(q)) &&
+                           (!estilista || tr.dataset.estilista === estilista);
+          tr.classList.toggle('hidden', !coincide);
+          if (coincide) { visibles++; importe += parseFloat(tr.dataset.importe) || 0; }
+        });
+        sinVentas.classList.toggle('hidden', visibles > 0);
+        document.getElementById('contadorVentas').textContent =
+          'Mostrando ' + visibles + ' de ' + filas.length + ' venta' + (filas.length === 1 ? '' : 's');
+        document.getElementById('importeVentas').textContent = dinero(importe);
+      }
+
+      inpTexto.addEventListener('input', filtrar);
+      if (selEstilista) selEstilista.addEventListener('change', filtrar);
+      filtrar();
+    })();
+  </script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Personal{% endblock %}
+{% block page_title %}Personal{% endblock %}
+{% block page_subtitle %}Productividad del equipo y alta de estilistas y administradores.{% endblock %}
+
+{% block header_actions %}
+          <a href="#usuarios"
+            class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition">
+            <i data-lucide="user-plus" class="w-5 h-5"></i> Nuevo Usuario
+          </a>
+{% endblock %}
+
+{% block content %}
+        <!-- Productividad de estilistas (solo Administrador) -->
+        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-semibold text-mauve-700">Productividad de Estilistas</h2>
+              <p class="text-xs text-mauve-400">Ventas procesadas e ingresos generados por cada estilista</p>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-rose-100/60 text-mauve-600 text-left text-xs uppercase tracking-wider">
+                  <th class="px-6 py-3 font-semibold">Estilista</th>
+                  <th class="px-6 py-3 font-semibold text-center">Transacciones</th>
+                  <th class="px-6 py-3 font-semibold text-center">Piezas / Servicios</th>
+                  <th class="px-6 py-3 font-semibold text-right">Ingreso generado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in productividad %}
+                <tr class="border-t border-rose-100">
+                  <td class="px-6 py-3 font-medium text-mauve-700">{{ p.nom_us }}</td>
+                  <td class="px-6 py-3 text-center">{{ p.total_transacciones }}</td>
+                  <td class="px-6 py-3 text-center">{{ p.total_piezas }}</td>
+                  <td class="px-6 py-3 text-right font-semibold text-rose-500">${{ '{:,.2f}'.format(p.ingreso_total) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="4" class="px-6 py-12 text-center text-mauve-400">
+                    <i data-lucide="users" class="w-7 h-7 mx-auto mb-2 text-rose-300"></i>
+                    No hay estilistas registrados
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Nuevo usuario / estilista (solo Administrador) -->
+        <section id="usuarios" class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden scroll-mt-6">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="user-plus" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-semibold text-mauve-700">Nuevo Usuario</h2>
+              <p class="text-xs text-mauve-400">Registra personal: estilistas y administradores</p>
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('nuevo_usuario') }}" class="p-6" autocomplete="off">
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div>
+                <label for="nom_us" class="block text-sm font-medium text-mauve-600 mb-1.5">Nombre</label>
+                <input id="nom_us" name="nom_us" type="text" maxlength="60" required placeholder="Nombre completo"
+                  class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+              <div>
+                <label for="rol_us" class="block text-sm font-medium text-mauve-600 mb-1.5">Rol</label>
+                <div class="relative">
+                  <select id="rol_us" name="rol_us" required class="w-full appearance-none px-4 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="" selected>Seleccionar...</option>
+                    {% for r in roles %}
+                    <option value="{{ r }}">{{ r }}</option>
+                    {% endfor %}
+                  </select>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+              </div>
+              <div>
+                <label for="tel_us" class="block text-sm font-medium text-mauve-600 mb-1.5">Teléfono</label>
+                <input id="tel_us" name="tel_us" type="tel" maxlength="15" placeholder="Opcional"
+                  class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+              <div class="xl:col-span-2">
+                <label for="correo_us" class="block text-sm font-medium text-mauve-600 mb-1.5">Correo electrónico</label>
+                <input id="correo_us" name="correo_us" type="email" maxlength="60" required placeholder="correo@ejemplo.com"
+                  class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+              <div>
+                <label for="contra_us" class="block text-sm font-medium text-mauve-600 mb-1.5">Contraseña</label>
+                <input id="contra_us" name="contra_us" type="password" minlength="6" maxlength="60" required autocomplete="new-password" placeholder="Mínimo 6 caracteres"
+                  class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+            </div>
+            <div class="flex justify-end mt-5">
+              <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition inline-flex items-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar Usuario
+              </button>
+            </div>
+          </form>
+        </section>
+{% endblock %}

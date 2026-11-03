@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Inicio{% endblock %} | Coco A Gogo Hair Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            display: ['"Playfair Display"', 'serif'],
+          },
+          colors: {
+            cream: { 50: '#fffaf7', 100: '#fbf3ec', 200: '#f4e8dc' },
+            mauve: { 50: '#f8f1f4', 100: '#efe0e6', 200: '#dfc3cf', 300: '#c9a0b2', 400: '#b07d94', 500: '#966079', 600: '#7a4b61', 700: '#5f3b4c' },
+          },
+        },
+      },
+    };
+  </script>
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-cream-50 font-sans text-mauve-700 min-h-screen">
+
+  {# Estructura del menú: (sección, [(endpoint, etiqueta, icono)]). "Personal" solo se muestra al Administrador. #}
+  {% set secciones = [
+    ('Operación', [
+      ('dashboard', 'Dashboard', 'layout-dashboard'),
+      ('pos', 'Punto de Venta', 'receipt'),
+      ('devoluciones', 'Devoluciones', 'undo-2'),
+      ('historial_ventas', 'Historial de Ventas', 'history'),
+    ]),
+    ('Inventario', [
+      ('catalogo', 'Catálogo', 'book-open'),
+      ('proveedores', 'Proveedores', 'truck'),
+      ('categorias', 'Categorías', 'folder-tree'),
+    ]),
+    ('Administración', [
+      ('usuarios', 'Personal', 'users'),
+    ]),
+  ] %}
+
+  <div class="flex min-h-screen">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-rose-100 p-5 sticky top-0 h-screen">
+      <a href="{{ url_for('dashboard') }}" class="flex items-center gap-3 px-2 mb-6">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-200 to-rose-400 flex items-center justify-center shadow-sm">
+          <i data-lucide="scissors" class="w-5 h-5 text-white"></i>
+        </div>
+        <div class="leading-tight">
+          <p class="font-display font-semibold text-mauve-700">Coco A Gogo</p>
+          <p class="font-display italic text-sm text-rose-400">Hair Studio</p>
+        </div>
+      </a>
+
+      <nav class="flex-1 overflow-y-auto -mr-2 pr-2 space-y-5" aria-label="Menú principal">
+        {% for etiqueta, enlaces in secciones %}
+        {% if etiqueta != 'Administración' or es_admin %}
+        <div>
+          <p class="px-3 text-[11px] uppercase tracking-widest text-mauve-300 mb-1.5">{{ etiqueta }}</p>
+          <div class="space-y-1">
+            {% for ep, texto, icono in enlaces %}
+            {% if ep != 'usuarios' or es_admin %}
+            {% set activo = request.endpoint == ep %}
+            <a href="{{ url_for(ep) }}" {% if activo %}aria-current="page"{% endif %}
+               class="flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm transition {{ 'bg-rose-100 text-rose-500 font-medium shadow-sm' if activo else 'text-mauve-500 hover:bg-rose-50 hover:text-rose-500' }}">
+              <i data-lucide="{{ icono }}" class="w-5 h-5"></i> {{ texto }}
+            </a>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </nav>
+
+      <div class="pt-4 mt-2 border-t border-rose-100">
+        <a href="{{ url_for('logout') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm text-mauve-400 hover:bg-rose-50 hover:text-rose-500 transition">
+          <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar sesión
+        </a>
+      </div>
+    </aside>
+
+    <!-- ============ CONTENIDO ============ -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Navegación móvil (desplazable horizontalmente) -->
+      <div class="lg:hidden bg-white border-b border-rose-100 px-4 py-3 sticky top-0 z-20">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-display font-semibold">Coco A Gogo</span>
+          <a href="{{ url_for('logout') }}" class="text-xs text-mauve-400 hover:text-rose-500 inline-flex items-center gap-1">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+          </a>
+        </div>
+        <nav class="flex gap-1 text-sm overflow-x-auto pb-1" aria-label="Menú principal móvil">
+          {% for etiqueta, enlaces in secciones %}
+          {% for ep, texto, icono in enlaces %}
+          {% if ep != 'usuarios' or es_admin %}
+          <a href="{{ url_for(ep) }}" class="shrink-0 px-3 py-1.5 rounded-full whitespace-nowrap {{ 'bg-rose-100 text-rose-500 font-medium' if request.endpoint == ep else 'text-mauve-500' }}">{{ texto }}</a>
+          {% endif %}
+          {% endfor %}
+          {% endfor %}
+        </nav>
+      </div>
+
+      <!-- Encabezado de página -->
+      <header class="px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="font-display text-3xl font-semibold text-mauve-700">{% block page_title %}{% endblock %}</h1>
+          <p class="text-sm text-mauve-400 mt-1">{% block page_subtitle %}{% endblock %}</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          {% block header_actions %}{% endblock %}
+          <div class="flex items-center gap-3 bg-white border border-rose-100 shadow-sm rounded-2xl pl-2 pr-4 py-2">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-300 to-mauve-400 text-white flex items-center justify-center">
+              <i data-lucide="user-round" class="w-5 h-5"></i>
+            </div>
+            <div class="leading-tight">
+              <p class="text-sm font-medium text-mauve-700">{{ session.nom_us }}</p>
+              <p class="text-xs text-mauve-400">{{ session.rol_us }} · Sesión activa</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="px-6 lg:px-10 pb-10 {% block main_class %}space-y-8{% endblock %}">
+        {% include '_flash.html' %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

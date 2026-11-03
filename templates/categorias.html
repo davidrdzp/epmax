@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorías{% endblock %}
+{% block page_title %}Categorías{% endblock %}
+{% block page_subtitle %}Agrupa tus productos, insumos y servicios del catálogo.{% endblock %}
+
+{% block header_actions %}
+          <a href="#nueva-categoria"
+            class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition">
+            <i data-lucide="folder-plus" class="w-5 h-5"></i> Nueva Categoría
+          </a>
+{% endblock %}
+
+{% block content %}
+        <!-- Tabla de categorías -->
+        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="folder-tree" class="w-5 h-5"></i></div>
+              <div>
+                <h2 class="font-semibold text-mauve-700">Categorías registradas</h2>
+                <p class="text-xs text-mauve-400">Cada categoría puede agrupar múltiples ítems del catálogo</p>
+              </div>
+            </div>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-rose-100 text-rose-500">{{ categorias|length }} categoría{{ '' if categorias|length == 1 else 's' }}</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-rose-100/60 text-mauve-600 text-left text-xs uppercase tracking-wider">
+                  <th class="px-6 py-3 font-semibold">ID Categoría</th>
+                  <th class="px-6 py-3 font-semibold">Nombre</th>
+                  <th class="px-6 py-3 font-semibold text-center">Ítems en el catálogo</th>
+                  <th class="px-6 py-3 font-semibold text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in categorias %}
+                <tr class="border-t border-rose-100 hover:bg-rose-50/40 transition">
+                  <td class="px-6 py-3">{{ c.id_categoria }}</td>
+                  <td class="px-6 py-3 font-medium text-mauve-700">{{ c.nom_cat }}</td>
+                  <td class="px-6 py-3 text-center">{{ c.items|length }}</td>
+                  <td class="px-6 py-3 text-center">
+                    <a href="{{ url_for('catalogo', id_categoria=c.id_categoria) }}"
+                      class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-rose-100 text-rose-500 hover:bg-rose-200 transition">
+                      <i data-lucide="book-open" class="w-3.5 h-3.5"></i> Ver ítems
+                    </a>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="4" class="px-6 py-12 text-center text-mauve-400">
+                    <i data-lucide="folder-open" class="w-7 h-7 mx-auto mb-2 text-rose-300"></i>
+                    Aún no hay categorías registradas
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Alta de categoría -->
+        <section id="nueva-categoria" class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden scroll-mt-6">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="folder-plus" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-semibold text-mauve-700">Nueva categoría</h2>
+              <p class="text-xs text-mauve-400">Agrupa tus productos, insumos y servicios</p>
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('nueva_categoria') }}" class="p-6 space-y-4">
+            <div>
+              <label for="nom_cat" class="block text-sm font-medium text-mauve-600 mb-1.5">Nombre de la categoría</label>
+              <input id="nom_cat" name="nom_cat" type="text" maxlength="60" required placeholder="Ej. Tratamientos"
+                class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition inline-flex items-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar Categoría
+              </button>
+            </div>
+          </form>
+        </section>
+{% endblock %}

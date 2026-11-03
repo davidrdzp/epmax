@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo{% endblock %}
+{% block page_title %}Catálogo{% endblock %}
+{% block page_subtitle %}Consulta y registra los productos, servicios e insumos de tu estudio.{% endblock %}
+
+{% block header_actions %}
+        <a href="#formulario"
+          class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition">
+          <i data-lucide="plus" class="w-5 h-5"></i> Nuevo Registro
+        </a>
+{% endblock %}
+
+{% block content %}
+        <!-- ========== Formulario de registro ========== -->
+        <section id="formulario" class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden scroll-mt-6">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-rose-100 bg-gradient-to-r from-rose-50 to-white">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="package-plus" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-semibold text-mauve-700">Registrar nuevo ítem</h2>
+              <p class="text-xs text-mauve-400">Completa todos los campos del ítem</p>
+            </div>
+          </div>
+
+          <form method="post" action="{{ url_for('catalogo') }}">
+          <div class="p-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+
+            <div>
+              <label for="id_categoria" class="block text-sm font-medium text-mauve-600 mb-1.5">Categoría</label>
+              <div class="relative">
+                <select id="id_categoria" name="id_categoria" required class="w-full appearance-none px-4 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                  <option value="" selected>Seleccionar...</option>
+                  {% for c in categorias %}
+                  <option value="{{ c.id_categoria }}">{{ c.nom_cat }}</option>
+                  {% endfor %}
+                </select>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
+              <p class="text-xs text-mauve-300 mt-1.5">¿No está la categoría? <a href="{{ url_for('categorias') }}#nueva-categoria" class="text-rose-500 underline">Regístrala aquí</a>.</p>
+            </div>
+
+            <div>
+              <label for="id_proveedor" class="block text-sm font-medium text-mauve-600 mb-1.5">Proveedor</label>
+              <div class="relative">
+                <select id="id_proveedor" name="id_proveedor" required class="w-full appearance-none px-4 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                  <option value="" selected>Seleccionar...</option>
+                  {% for p in proveedores %}
+                  <option value="{{ p.id_proveedor }}">{{ p.nom_prov }}</option>
+                  {% endfor %}
+                </select>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
+              <p class="text-xs text-mauve-300 mt-1.5">¿No está el proveedor? <a href="{{ url_for('proveedores') }}#nuevo-proveedor" class="text-rose-500 underline">Regístralo aquí</a>.</p>
+            </div>
+
+            <div>
+              <label for="tipo_item" class="block text-sm font-medium text-mauve-600 mb-1.5">Tipo de ítem</label>
+              <div class="relative">
+                <select id="tipo_item" name="tipo_item" required class="w-full appearance-none px-4 pr-10 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-400 focus:outline-none focus:ring-2 focus:ring-rose-300">
+                  <option value="" selected>Seleccionar...</option>
+                  <option value="Producto">Producto</option>
+                  <option value="Insumo">Insumo</option>
+                  <option value="Servicio">Servicio</option>
+                </select>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
+            </div>
+
+            <div class="sm:col-span-2 xl:col-span-3">
+              <label for="nom_item" class="block text-sm font-medium text-mauve-600 mb-1.5">Nombre del ítem</label>
+              <input id="nom_item" name="nom_item" type="text" maxlength="60" required placeholder="Nombre del producto, servicio o insumo"
+                class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+            </div>
+
+            <div>
+              <label for="precio_v" class="block text-sm font-medium text-mauve-600 mb-1.5">Precio de venta</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-300 text-sm">$</span>
+                <input id="precio_v" name="precio_v" type="number" min="0" step="0.01" required placeholder="0.00"
+                  class="w-full pl-8 pr-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+            </div>
+
+            <div>
+              <label for="precio_c" class="block text-sm font-medium text-mauve-600 mb-1.5">Precio de compra</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-300 text-sm">$</span>
+                <input id="precio_c" name="precio_c" type="number" min="0" step="0.01" required placeholder="0.00"
+                  class="w-full pl-8 pr-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              </div>
+            </div>
+
+            <div>
+              <label for="fecha_caduc" class="block text-sm font-medium text-mauve-600 mb-1.5">Fecha de caducidad</label>
+              <input id="fecha_caduc" name="fecha_caduc" type="date"
+                class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 text-sm text-mauve-500 focus:outline-none focus:ring-2 focus:ring-rose-300" />
+            </div>
+
+            <div>
+              <label for="stock" class="block text-sm font-medium text-mauve-600 mb-1.5">Stock actual</label>
+              <input id="stock" name="stock" type="number" min="0" placeholder="0"
+                class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+            </div>
+
+            <div>
+              <label for="stock_min" class="block text-sm font-medium text-mauve-600 mb-1.5">Stock mínimo</label>
+              <input id="stock_min" name="stock_min" type="number" min="0" placeholder="0"
+                class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+            </div>
+
+            <div>
+              <label for="stock_max" class="block text-sm font-medium text-mauve-600 mb-1.5">Stock máximo</label>
+              <input id="stock_max" name="stock_max" type="number" min="0" placeholder="0"
+                class="w-full px-4 py-3 rounded-2xl bg-cream-50 border border-rose-200 placeholder-mauve-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+            </div>
+          </div>
+
+          <div class="flex flex-wrap justify-end gap-3 px-6 py-4 bg-cream-50 border-t border-rose-100">
+            <button type="reset" class="px-6 py-2.5 rounded-2xl bg-white border border-rose-200 text-rose-500 font-medium hover:bg-rose-50 transition">Limpiar</button>
+            <button type="submit" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg hover:from-rose-500 hover:to-pink-600 active:scale-[.98] transition inline-flex items-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i> Guardar Ítem
+            </button>
+          </div>
+          </form>
+        </section>
+
+        <!-- ========== Tabla del catálogo ========== -->
+        <section class="space-y-4">
+
+          <!-- Barra superior de filtros -->
+          <form method="get" action="{{ url_for('catalogo') }}" class="flex flex-wrap items-end justify-between gap-4">
+            <div class="flex flex-wrap items-end gap-4">
+              <div>
+                <label for="filtro_categoria" class="block text-sm font-medium text-mauve-600 mb-1.5">Filtrar por categoría</label>
+                <div class="relative w-64">
+                  <i data-lucide="filter" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                  <select id="filtro_categoria" name="id_categoria" onchange="this.form.submit()" class="w-full appearance-none pl-11 pr-10 py-2.5 rounded-2xl bg-white border border-rose-200 text-sm text-mauve-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="" {{ 'selected' if filtro_categoria is none }}>Todas las categorías</option>
+                    {% for c in categorias %}
+                    <option value="{{ c.id_categoria }}" {{ 'selected' if filtro_categoria == c.id_categoria }}>{{ c.nom_cat }}</option>
+                    {% endfor %}
+                  </select>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+              </div>
+              <div>
+                <label for="filtro_tipo" class="block text-sm font-medium text-mauve-600 mb-1.5">Filtrar por tipo</label>
+                <div class="relative w-48">
+                  <i data-lucide="tag" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                  <select id="filtro_tipo" name="tipo_item" onchange="this.form.submit()" class="w-full appearance-none pl-11 pr-10 py-2.5 rounded-2xl bg-white border border-rose-200 text-sm text-mauve-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="" {{ 'selected' if filtro_tipo is none }}>Todos los tipos</option>
+                    {% for t in tipos %}
+                    <option value="{{ t }}" {{ 'selected' if filtro_tipo == t }}>{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-mauve-300 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+              </div>
+            </div>
+            <div class="relative w-full sm:w-72">
+              <i data-lucide="search" class="w-4 h-4 text-rose-300 absolute left-4 top-1/2 -translate-y-1/2"></i>
+              <input id="buscar_catalogo" type="text" name="q" value="{{ filtro_texto }}" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugerencias_catalogo" placeholder="Buscar por nombre…"
+                class="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-white border border-rose-200 placeholder-mauve-300 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+              <ul id="sugerencias_catalogo" role="listbox"
+                class="hidden absolute left-0 right-0 top-full mt-2 z-30 max-h-72 overflow-y-auto bg-white rounded-2xl border border-rose-100 shadow-lg py-1.5"></ul>
+            </div>
+          </form>
+
+          <div class="bg-white rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm whitespace-nowrap">
+                <thead>
+                  <tr class="bg-rose-100/70 text-mauve-600 text-left text-xs uppercase tracking-wider">
+                    <th class="px-5 py-4 font-semibold">ID Ítem</th>
+                    <th class="px-5 py-4 font-semibold">Nombre</th>
+                    <th class="px-5 py-4 font-semibold">Tipo</th>
+                    <th class="px-5 py-4 font-semibold">Categoría</th>
+                    <th class="px-5 py-4 font-semibold">Proveedor</th>
+                    <th class="px-5 py-4 font-semibold text-right">Precio Venta</th>
+                    <th class="px-5 py-4 font-semibold text-right">Precio Compra</th>
+                    <th class="px-5 py-4 font-semibold text-center">Stock</th>
+                    <th class="px-5 py-4 font-semibold text-center">Stock Mín.</th>
+                    <th class="px-5 py-4 font-semibold text-center">Stock Máx.</th>
+                    <th class="px-5 py-4 font-semibold text-center">Caducidad</th>
+                    <th class="px-5 py-4 font-semibold text-center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for nom_cat, items in agrupado.items() %}
+                  <tr data-cat-row class="bg-cream-100/70 border-t border-rose-100">
+                    <td colspan="12" class="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-mauve-500">
+                      {{ nom_cat }} <span data-cat-count class="ml-1 normal-case font-normal text-mauve-300">({{ items|length }})</span>
+                    </td>
+                  </tr>
+                  {% for i in items %}
+                  {% set estado = estados[i.id_item] %}
+                  <tr data-item-row data-nombre="{{ i.nom_item }}" data-tipo="{{ i.tipo_item }}" data-precio="{{ i.precio_v }}" data-categoria="{{ nom_cat }}" class="border-t border-rose-100 hover:bg-rose-50/40 transition">
+                    <td class="px-5 py-3">{{ i.id_item }}</td>
+                    <td class="px-5 py-3 font-medium text-mauve-700">{{ i.nom_item }}</td>
+                    <td class="px-5 py-3">{{ i.tipo_item }}</td>
+                    <td class="px-5 py-3">{{ i.categoria.nom_cat }}</td>
+                    <td class="px-5 py-3">{{ i.proveedor.nom_prov }}</td>
+                    <td class="px-5 py-3 text-right">${{ '{:,.2f}'.format(i.precio_v) }}</td>
+                    <td class="px-5 py-3 text-right">${{ '{:,.2f}'.format(i.precio_c) }}</td>
+                    {% if i.tipo_item == 'Servicio' %}
+                    <td class="px-5 py-3 text-center text-mauve-300">—</td>
+                    <td class="px-5 py-3 text-center text-mauve-300">—</td>
+                    <td class="px-5 py-3 text-center text-mauve-300">—</td>
+                    {% else %}
+                    <td class="px-5 py-3 text-center font-semibold">{{ i.stock }}</td>
+                    <td class="px-5 py-3 text-center">{{ i.stock_min }}</td>
+                    <td class="px-5 py-3 text-center">{{ i.stock_max }}</td>
+                    {% endif %}
+                    <td class="px-5 py-3 text-center">{{ i.fecha_caduc or '—' }}</td>
+                    <td class="px-5 py-3 text-center">
+                      <span class="text-xs font-semibold px-3 py-1 rounded-full {{ 'bg-rose-100 text-rose-500' if estado in ('Stock bajo', 'Vencido') else ('bg-amber-100 text-amber-700' if estado == 'Por vencer' else 'bg-emerald-50 text-emerald-600') }}">{{ estado }}</span>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr data-vacio-row>
+                    <td colspan="12" class="px-5 py-4 text-center text-xs text-mauve-300">Sin ítems en esta categoría</td>
+                  </tr>
+                  {% endfor %}
+                  {% else %}
+                  <tr>
+                    <td colspan="12" class="px-6 py-14 text-center text-mauve-400">
+                      <i data-lucide="package-open" class="w-8 h-8 mx-auto mb-2 text-rose-300"></i>
+                      No hay registros en el catálogo
+                    </td>
+                  </tr>
+                  {% endfor %}
+                  <tr id="sinCoincidencias" class="hidden">
+                    <td colspan="12" class="px-6 py-10 text-center text-mauve-400">
+                      <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 text-rose-300"></i>
+                      Ningún ítem coincide con la búsqueda
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="contadorRegistros" class="px-6 py-4 bg-cream-50 border-t border-rose-100 text-xs text-mauve-400">
+              Mostrando {{ total_items }} registro{{ '' if total_items == 1 else 's' }}
+            </div>
+          </div>
+        </section>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // ---------- Alta de ítems: los Servicios no manejan inventario ni caducidad ----------
+    (function () {
+      const selTipo = document.getElementById('tipo_item');
+      const camposStock = ['stock', 'stock_min', 'stock_max'].map(id => document.getElementById(id));
+      const inpCaduc = document.getElementById('fecha_caduc');
+      const BLOQUEADO = ['opacity-50', 'cursor-not-allowed'];
+
+      function bloquear(el, bloquear) {
+        el.disabled = bloquear;
+        BLOQUEADO.forEach(c => el.classList.toggle(c, bloquear));
+      }
+
+      function aplicarTipo() {
+        const esServicio = selTipo.value === 'Servicio';
+        camposStock.forEach(el => {
+          if (esServicio) el.value = 0;
+          else if (el.disabled) el.value = '';
+          bloquear(el, esServicio);
+        });
+        if (esServicio) inpCaduc.value = '';
+        bloquear(inpCaduc, esServicio);
+      }
+
+      selTipo.addEventListener('change', aplicarTipo);
+      // Tras "Limpiar" el navegador restaura los valores; se reevalúa el estado de los campos.
+      selTipo.form.addEventListener('reset', () => setTimeout(aplicarTipo, 0));
+      aplicarTipo();
+    })();
+
+    // ---------- Búsqueda dinámica con sugerencias ----------
+    (function () {
+      const inp = document.getElementById('buscar_catalogo');
+      const lista = document.getElementById('sugerencias_catalogo');
+      const filas = Array.from(document.querySelectorAll('tr[data-item-row]'));
+      const normalizar = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const dinero = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const BADGE = {
+        Servicio: 'bg-rose-100 text-rose-500',
+        Producto: 'bg-emerald-50 text-emerald-600',
+        Insumo: 'bg-amber-100 text-amber-700',
+      };
+      const ITEMS = filas.map(tr => ({
+        nombre: tr.dataset.nombre, tipo: tr.dataset.tipo,
+        precio: parseFloat(tr.dataset.precio), categoria: tr.dataset.categoria,
+      }));
+      const MAX_SUGERENCIAS = 8;
+      let sugerencias = [];
+      let activa = -1;
+
+      // Muestra solo las filas cuyo nombre contiene el texto; oculta categorías sin coincidencias.
+      function filtrarTabla() {
+        const q = normalizar(inp.value.trim());
+        let visibles = 0;
+        let catActual = null, visiblesCat = 0, totalCat = 0;
+        const cerrarCategoria = () => {
+          if (!catActual) return;
+          catActual.row.classList.toggle('hidden', !!q && visiblesCat === 0);
+          catActual.row.querySelector('[data-cat-count]').textContent = '(' + (q ? visiblesCat : totalCat) + ')';
+        };
+        document.querySelectorAll('tbody > tr').forEach(tr => {
+          if (tr.hasAttribute('data-cat-row')) {
+            cerrarCategoria();
+            catActual = { row: tr }; visiblesCat = 0; totalCat = 0;
+          } else if (tr.hasAttribute('data-item-row')) {
+            const coincide = !q || normalizar(tr.dataset.nombre).includes(q);
+            tr.classList.toggle('hidden', !coincide);
+            totalCat++;
+            if (coincide) { visibles++; visiblesCat++; }
+          } else if (tr.hasAttribute('data-vacio-row')) {
+            tr.classList.toggle('hidden', !!q);
+          }
+        });
+        cerrarCategoria();
+        document.getElementById('sinCoincidencias').classList.toggle('hidden', !q || visibles > 0);
+        document.getElementById('contadorRegistros').textContent =
+          'Mostrando ' + (q ? visibles : filas.length) + ' registro' + ((q ? visibles : filas.length) === 1 ? '' : 's');
+      }
+
+      function cerrar() {
+        lista.classList.add('hidden');
+        inp.setAttribute('aria-expanded', 'false');
+        activa = -1;
+      }
+
+      function marcar(i) {
+        const lis = lista.querySelectorAll('li[data-idx]');
+        lis.forEach(li => li.classList.remove('bg-rose-50'));
+        activa = lis.length ? (i + lis.length) % lis.length : -1;
+        if (activa >= 0) { lis[activa].classList.add('bg-rose-50'); lis[activa].scrollIntoView({ block: 'nearest' }); }
+      }
+
+      function sugerir() {
+        const q = normalizar(inp.value.trim());
+        if (!q) { cerrar(); return; }
+        const empieza = [], contiene = [];
+        ITEMS.forEach(it => {
+          const n = normalizar(it.nombre);
+          if (n.startsWith(q)) empieza.push(it); else if (n.includes(q)) contiene.push(it);
+        });
+        sugerencias = empieza.concat(contiene).slice(0, MAX_SUGERENCIAS);
+        lista.innerHTML = sugerencias.length
+          ? sugerencias.map((it, i) =>
+              '<li role="option" data-idx="' + i + '" class="flex items-center justify-between gap-3 px-4 py-2.5 cursor-pointer hover:bg-rose-50 transition">' +
+              '<span class="min-w-0"><span class="block text-sm font-medium text-mauve-700 truncate">' + esc(it.nombre) + '</span>' +
+              '<span class="block text-[11px] text-mauve-300 truncate">' + esc(it.categoria) + '</span></span>' +
+              '<span class="flex items-center gap-2 shrink-0">' +
+              '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ' + (BADGE[it.tipo] || BADGE.Producto) + '">' + esc(it.tipo) + '</span>' +
+              '<span class="text-sm font-semibold text-mauve-700">' + dinero(it.precio) + '</span></span></li>').join('')
+          : '<li class="px-4 py-3 text-sm text-mauve-400">Sin coincidencias para «' + esc(inp.value.trim()) + '»</li>';
+        lista.classList.remove('hidden');
+        inp.setAttribute('aria-expanded', 'true');
+        activa = -1;
+        if (sugerencias.length) marcar(0);
+      }
+
+      function elegir(i) {
+        const it = sugerencias[i];
+        if (!it) return;
+        inp.value = it.nombre;
+        filtrarTabla();
+        cerrar();
+      }
+
+      inp.addEventListener('input', () => { filtrarTabla(); sugerir(); });
+      inp.addEventListener('focus', sugerir);
+      inp.addEventListener('keydown', e => {
+        const abierta = !lista.classList.contains('hidden');
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (abierta) marcar(activa + 1); else sugerir(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); if (abierta) marcar(activa - 1); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (abierta && activa >= 0) elegir(activa); else cerrar(); }
+        else if (e.key === 'Escape') cerrar();
+      });
+      lista.addEventListener('mousedown', e => {
+        const li = e.target.closest('li[data-idx]');
+        if (li) { e.preventDefault(); elegir(parseInt(li.dataset.idx, 10)); }
+      });
+      lista.addEventListener('mousemove', e => {
+        const li = e.target.closest('li[data-idx]');
+        if (li && parseInt(li.dataset.idx, 10) !== activa) marcar(parseInt(li.dataset.idx, 10));
+      });
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#buscar_catalogo') && !e.target.closest('#sugerencias_catalogo')) cerrar();
+      });
+
+      filtrarTabla();   // aplica el texto de ?q= recibido por URL
+    })();
+  </script>
+{% endblock %}
